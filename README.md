@@ -58,12 +58,16 @@ These exist because each was violated at least once during development:
 
 **Claude Desktop / Cowork** — download `supplement-label-review.skill` from [Releases](../../releases) and open it, or click **Save skill** on the file card.
 
-**Claude Code** — clone into your skills directory:
+**Claude Code** — clone, then copy the skill itself into your skills directory:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/supplement-label-review.git \
-  ~/.claude/skills/supplement-label-review
+git clone https://github.com/xiedongwan/supplement-label-review.git
+cp -r supplement-label-review/skill/supplement-label-review ~/.claude/skills/
 ```
+
+The skill lives at `skill/supplement-label-review/` in this repo, so cloning the
+repository directly into `~/.claude/skills/` would nest `SKILL.md` too deep for
+Claude Code to discover it.
 
 **Build the .skill bundle yourself:**
 
