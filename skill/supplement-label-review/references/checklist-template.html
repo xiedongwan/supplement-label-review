@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PRODUCT_NAME}} — Label Compliance Review</title>
+<style>
+  :root{
+    --bg:#faf9f7; --card:#fff; --ink:#1a1a1a; --muted:#6b6b6b; --line:#e5e3df;
+    --fail:#c0392b; --fail-bg:#fdf2f0; --info:#b8860b; --info-bg:#fdf9ed;
+    --pass:#2d7a4f; --pass-bg:#f0f7f2;
+    --accent:#2c3e50;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 20px 80px;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:900px;margin:0 auto}
+  header{margin-bottom:28px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:14px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:99px;
+    padding:4px 12px;font-size:12.5px;color:var(--muted)}
+
+  .scoreboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px;margin:20px 0}
+  .score{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:14px;text-align:center}
+  .score .n{font-size:26px;font-weight:650;line-height:1.1}
+  .score .l{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--muted);margin-top:4px}
+  .score.f .n{color:var(--fail)} .score.i .n{color:var(--info)}
+  .score.p .n{color:var(--pass)}
+
+  .disclaimer{background:#fffbe8;border:1px solid #e8d9a0;border-left:4px solid #c9a227;
+    border-radius:8px;padding:14px 16px;font-size:13.5px;margin:20px 0;color:#5c4a1a}
+
+  .progwrap{position:sticky;top:0;background:var(--bg);padding:12px 0 10px;z-index:20;
+    border-bottom:1px solid var(--line);margin-bottom:20px}
+  .progbar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .progfill{height:100%;background:var(--pass);width:0%;transition:width .25s ease}
+  .progtext{font-size:12.5px;color:var(--muted);margin-top:6px;display:flex;
+    justify-content:space-between;align-items:center}
+  .btn{background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;
+    font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--muted);color:var(--ink)}
+
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.9px;margin:32px 0 12px;
+    padding-bottom:7px;border-bottom:2px solid var(--line);color:var(--accent)}
+  h2 .cnt{color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-size:13px}
+
+  .secnote{font-size:13px;color:var(--muted);margin:-4px 0 14px;line-height:1.55}
+
+  .item{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px;margin-bottom:12px;border-left-width:4px}
+  .item.fail{border-left-color:var(--fail)}
+  .item.info{border-left-color:var(--info)}
+  .item.pass{border-left-color:var(--pass)}
+  .item.done{opacity:.55}
+
+  .head{display:flex;gap:11px;align-items:flex-start}
+  input[type=checkbox]{width:17px;height:17px;margin-top:3px;flex-shrink:0;cursor:pointer;
+    accent-color:var(--pass)}
+  .htext{flex:1;min-width:0}
+  .title{font-weight:600;font-size:15px;margin-bottom:5px}
+  .item.done .title{text-decoration:line-through}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+  .tag{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase}
+  .tag.fail{background:var(--fail-bg);color:var(--fail)}
+  .tag.info{background:var(--info-bg);color:var(--info)}
+  .tag.pass{background:var(--pass-bg);color:var(--pass)}
+  .tag.hi{background:var(--fail-bg);color:var(--fail)}
+  .tag.med{background:var(--info-bg);color:var(--info)}
+  .tag.low{background:#f0f0f0;color:var(--muted)}
+  .rid{font-size:11.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .block{margin-top:10px;font-size:14px}
+  .block .lab{font-size:11px;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--muted);margin-bottom:3px}
+  .obs{background:#f7f6f4;border-radius:6px;padding:9px 11px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+    white-space:pre-wrap;word-break:break-word}
+
+  /* Regulation block: name + link live here, not under the title */
+  .reg{background:#f7f9fb;border:1px solid #dfe6ec;border-radius:6px;padding:10px 12px}
+  .regname{font-size:12.5px;font-weight:650;color:var(--accent);margin-bottom:5px;
+    display:flex;flex-wrap:wrap;gap:7px;align-items:baseline}
+  .regname .cfr{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600}
+  .regname a{font-size:11.5px;font-weight:400;color:#5a7fa0;text-decoration:none;
+    border-bottom:1px solid #c3d4e2}
+  .regname a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  .regtext{font-size:13.5px;line-height:1.6}
+
+  .fix{background:var(--pass-bg);border-radius:6px;padding:9px 11px;font-size:13.5px}
+  .fix code{background:#fff;padding:1px 5px;border-radius:3px;font-size:12.5px;
+    display:inline-block;margin:1px 0}
+  .warn{background:#fffbe8;border-radius:6px;padding:9px 11px;font-size:13px;color:#5c4a1a}
+
+  textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+    font:13.5px/1.5 inherit;resize:vertical;min-height:34px;margin-top:9px;background:#fdfdfc}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  textarea::placeholder{color:#b5b5b5}
+
+  /* Collapsible Pass section */
+  details.passfold{border:1px solid var(--line);border-radius:10px;background:var(--card);
+    overflow:hidden}
+  details.passfold > summary{cursor:pointer;padding:13px 16px;font-size:14px;
+    font-weight:600;color:var(--pass);list-style:none;display:flex;
+    justify-content:space-between;align-items:center;gap:10px}
+  details.passfold > summary::-webkit-details-marker{display:none}
+  details.passfold > summary .hint{font-weight:400;font-size:12.5px;color:var(--muted)}
+  details.passfold > summary:hover{background:var(--pass-bg)}
+  details.passfold[open] > summary{border-bottom:1px solid var(--line)}
+  details.passfold > summary::after{content:"▸";color:var(--muted);font-size:13px;
+    transition:transform .2s ease}
+  details.passfold[open] > summary::after{transform:rotate(90deg)}
+  .passbody{padding:14px 16px 4px}
+  .passbody .item{border-left-width:4px}
+
+  .notes{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px;margin-top:24px}
+  .notes h3{margin:0 0 9px;font-size:14px}
+  .notes textarea{min-height:100px}
+  footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--muted)}
+  @media print{
+    .progwrap,textarea,.btn{display:none}
+    body{background:#fff;padding:0}
+    .item{break-inside:avoid;box-shadow:none}
+    details.passfold[open] > summary::after{content:""}
+    details.passfold > summary::after{content:""}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>{{PRODUCT_NAME}}</h1>
+  <div class="sub">US Dietary Supplement Label Compliance Review</div>
+  <div class="meta">
+    <span class="chip">Reviewed {{DATE}}</span>
+    <span class="chip">Modules: {{MODULES}}</span>
+    <span class="chip">Panels supplied: {{PANELS}}</span>
+  </div>
+</header>
+
+<div class="scoreboard">
+  <div class="score f"><div class="n">{{N_FAIL}}</div><div class="l">Must fix</div></div>
+  <div class="score i"><div class="n">{{N_INFO}}</div><div class="l">Needs info</div></div>
+  <div class="score p"><div class="n">{{N_PASS}}</div><div class="l">Pass</div></div>
+</div>
+
+<div class="disclaimer">
+  <strong>This review is a structured regulatory analysis, not legal advice.</strong>
+  Findings are based on the cited Code of Federal Regulations text as retrieved from eCFR.
+  Regulations change, and application depends on facts not visible on packaging artwork.
+  Have final artwork reviewed by a qualified regulatory consultant or attorney before
+  commercial printing.
+</div>
+
+<div class="progwrap">
+  <div class="progbar"><div class="progfill" id="pf"></div></div>
+  <div class="progtext">
+    <span id="pt">0 of 0 resolved</span>
+    <button class="btn" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<!--
+  ============================ ITEM TEMPLATE ============================
+  Repeat per finding. Set the class on .item to: fail | info | pass
+
+  STRUCTURE RULES (changed — follow exactly):
+  1. The regulation NAME + SOURCE LINK go inside the "What the regulation
+     requires" block (.reg > .regname), NOT in a .tags row under the title.
+     The .tags row carries only the verdict tag and risk tag.
+  2. Items in the Pass section have NO checkbox — .head contains only .htext.
+     Fail and Needs-info items DO have a checkbox.
+  3. Every item keeps its textarea for notes, including Pass items.
+  4. data-id must be unique and stable across re-runs.
+
+  ---- FAIL / INFO item (has checkbox) ----
+
+  <div class="item fail" data-id="F2">
+    <div class="head">
+      <input type="checkbox">
+      <div class="htext">
+        <div class="title">DSHEA disclaimer missing from the front panel
+          &nbsp;<span class="rid">[F2]</span></div>
+        <div class="tags">
+          <span class="tag fail">Fail</span>
+          <span class="tag hi">High risk</span>
+        </div>
+
+        <div class="block">
+          <div class="lab">On the label</div>
+          <div class="obs">Front panel: "IMMUNITY &amp; ENERGY *"
+Back panel: disclaimer box present</div>
+        </div>
+
+        <div class="block">
+          <div class="lab">What the regulation requires</div>
+          <div class="reg">
+            <div class="regname">
+              <span>Structure/function claim disclaimer &mdash; placement</span>
+              <span class="cfr">21 CFR 101.93(d)</span>
+              <a href="https://www.ecfr.gov/current/title-21/section-101.93"
+                 target="_blank">view on eCFR &rarr;</a>
+            </div>
+            <div class="regtext">"On product labels and in labeling, the disclaimer
+              shall appear on <strong>each panel or page</strong> where there such is
+              a statement."</div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="lab">Correction</div>
+          <div class="fix">Add the boxed disclaimer to the front panel, or move the
+            claim to the information panel.<br>
+            <code>* These statements have not been evaluated by the Food and Drug
+            Administration.</code></div>
+        </div>
+
+        <div class="block">
+          <div class="lab">Note</div>
+          <div class="warn">Cross-panel asterisk linking alone does not satisfy the
+            "each panel" language as written.</div>
+        </div>
+
+        <textarea placeholder="Notes…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  ---- PASS item (NO checkbox) ----
+
+  <div class="item pass" data-id="A1">
+    <div class="head">
+      <div class="htext">
+        <div class="title">Statement of identity includes "Dietary Supplement"
+          &nbsp;<span class="rid">[A1]</span></div>
+        <div class="tags"><span class="tag pass">Pass</span></div>
+        <div class="block">
+          <div class="lab">On the label</div>
+          <div class="obs">PDP: "Dietary Supplement"</div>
+        </div>
+        <div class="block">
+          <div class="lab">What the regulation requires</div>
+          <div class="reg">
+            <div class="regname">
+              <span>Identity labeling of food in packaged form</span>
+              <span class="cfr">21 CFR 101.3(g)</span>
+              <a href="https://www.ecfr.gov/current/title-21/section-101.3"
+                 target="_blank">view on eCFR &rarr;</a>
+            </div>
+            <div class="regtext">"Dietary supplements shall be identified by the term
+              'dietary supplement' as a part of the statement of identity."</div>
+          </div>
+        </div>
+        <textarea placeholder="Notes…"></textarea>
+      </div>
+    </div>
+  </div>
+  ======================================================================
+-->
+
+<h2>Must fix <span class="cnt">— violations to correct before printing</span></h2>
+<div class="secnote">Each item cites the regulation it rests on. Tick items as your
+designer resolves them.</div>
+{{FAIL_ITEMS}}
+
+<h2>Needs information <span class="cnt">— cannot be determined from what was supplied</span></h2>
+<div class="secnote">These are not failures. A photograph cannot establish type sizes,
+panel areas, certification status, or lab results — these items say exactly what to
+measure or request. Supplying the print-ready vector file resolves most of the
+measurement items.</div>
+{{INFO_ITEMS}}
+
+<h2>Passing <span class="cnt">— requirements met</span></h2>
+<details class="passfold">
+  <summary>
+    <span>{{N_PASS}} requirements verified as met</span>
+    <span class="hint">click to expand</span>
+  </summary>
+  <div class="passbody">
+    {{PASS_ITEMS}}
+  </div>
+</details>
+
+<div class="notes">
+  <h3>Overall notes</h3>
+  <textarea id="overall" placeholder="Questions for the regulatory consultant, supplier follow-ups, print deadlines…"></textarea>
+</div>
+
+<footer>
+  Regulation text retrieved from <a href="https://www.ecfr.gov" target="_blank">eCFR</a>.
+  Progress covers items requiring action; passing items are recorded for evidence but
+  are not counted. Progress is saved in this browser.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var KEY = 'slr_{{STORAGE_KEY}}';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { state = {}; }
+
+  var allItems = Array.prototype.slice.call(document.querySelectorAll('.item'));
+  // Progress counts only actionable items — those bearing a checkbox.
+  var actionable = allItems.filter(function(it){
+    return it.querySelector('input[type=checkbox]');
+  });
+
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  function progress(){
+    var done = actionable.filter(function(it){
+      return it.querySelector('input[type=checkbox]').checked;
+    }).length;
+    var pct = actionable.length ? (done / actionable.length * 100) : 100;
+    document.getElementById('pf').style.width = pct + '%';
+    document.getElementById('pt').textContent =
+      done + ' of ' + actionable.length + ' action items resolved';
+  }
+
+  allItems.forEach(function(it){
+    var id = it.getAttribute('data-id');
+    if (!id) return;
+    var cb = it.querySelector('input[type=checkbox]');
+    var ta = it.querySelector('textarea');
+    var st = state[id] || {};
+
+    if (cb){
+      cb.checked = !!st.checked;
+      it.classList.toggle('done', cb.checked);
+      cb.addEventListener('change', function(){
+        state[id] = state[id] || {};
+        state[id].checked = cb.checked;
+        it.classList.toggle('done', cb.checked);
+        save(); progress();
+      });
+    }
+    if (ta){
+      ta.value = st.note || '';
+      ta.addEventListener('input', function(){
+        state[id] = state[id] || {};
+        state[id].note = ta.value;
+        save();
+      });
+    }
+  });
+
+  var ov = document.getElementById('overall');
+  if (ov){
+    ov.value = state.__overall || '';
+    ov.addEventListener('input', function(){
+      state.__overall = ov.value; save();
+    });
+  }
+
+  // Remember whether the Pass section was expanded
+  var fold = document.querySelector('details.passfold');
+  if (fold){
+    fold.open = !!state.__passopen;
+    fold.addEventListener('toggle', function(){
+      state.__passopen = fold.open; save();
+    });
+  }
+
+  window.resetAll = function(){
+    if (!confirm('Clear all checkboxes and notes?')) return;
+    var wasOpen = fold ? fold.open : false;
+    state = {}; save();
+    allItems.forEach(function(it){
+      var cb = it.querySelector('input[type=checkbox]');
+      var ta = it.querySelector('textarea');
+      if (cb) cb.checked = false;
+      if (ta) ta.value = '';
+      it.classList.remove('done');
+    });
+    if (ov) ov.value = '';
+    if (fold) { state.__passopen = wasOpen; save(); }
+    progress();
+  };
+
+  progress();
+})();
+</script>
+</body>
+</html>
