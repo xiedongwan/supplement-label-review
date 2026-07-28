@@ -10,18 +10,6 @@ Every rule is built from **source regulation text retrieved from eCFR** — not 
 
 ---
 
-## Why this exists
-
-Commercial label reviews vary a lot in quality. Two paid reviews of the same product line produced, between them:
-
-- A correction instructing a designer to label **Chaga as "fruiting body"** — Chaga is a sclerotium, so following the correction would have introduced a *new* inaccuracy into corrected artwork.
-- A **"3–5 pt heavy bar"** requirement cited to 21 CFR 101.36. No point size appears anywhere in 101.36; the figure comes from Appendix B to Part 101, which 101.36(e)(10) invokes with "FDA **urges**."
-- Instructions to place the first heavy bar **beneath the "Supplement Facts" title**. Per 101.36(e)(6)(i) it goes beneath *Servings Per Container*.
-- A **"font must be ½ the size of the most prominent text"** rule cited to 101.3(d), which actually says "reasonably related." No fraction appears in the regulation.
-- **Country-of-origin marked compliant on presence alone**, missing that 19 CFR 134.46 is a proximity-and-size rule triggered by a competing address.
-
-This skill encodes the regulations directly so those errors are catchable.
-
 ## What it checks
 
 **Layer 1 — always runs (35 rules)**
